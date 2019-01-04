@@ -1,25 +1,42 @@
 import pandas as pd
+from matplotlib import pyplot as plt
+import numpy as np
+# Skipping the 1st row, starting to read data from columns headers:
+loan_stats_data = pd.read_csv(r'C:\Users\hila\ml_final_ex\LoanStats3a.csv',low_memory=False,skiprows=1)
 
-vars_description = pd.read_excel(r'C:\Users\hila\PycharmProjects\ml_course_codes\ml_course_codes\LCDataDictionary.xlsx')
-loan_stats_data = pd.read_csv(r'C:\Users\hila\PycharmProjects\ml_course_codes\ml_course_codes\LoanStats3a.csv',low_memory=False)
-# 1st row is irrelevant, therefore:
-loan_stats_data = pd.read_csv(r'C:\Users\hila\PycharmProjects\ml_course_codes\ml_course_codes\LoanStats3a.csv',low_memory=False,skiprows=1)
+# Deleting columns that contain only NaNs:
+loan_stats_data=loan_stats_data.dropna(axis=1,how='all',thresh=30000)
 
-#print(loan_stats_data.columns)
+# Create a boolean column for loan_status:
+d = {'Charged Off':0, 'Fully Paid':1}
+loan_stats_data['loan_status_bool'] = pd.Series(loan_stats_data['loan_status'].map(d))
 
-# many cols contains only ympty values (nans) - let's delete them:
+# remove rows with NaN in loan_status_bool column:
+loan_stats_data=loan_stats_data.dropna(axis=0, how='any', subset=['loan_status_bool'])
 
-loan_stats_data_new = loan_stats_data
+# Removing all columns that have only one unique value:
+loan_stats_data=loan_stats_data[[c for c in list(loan_stats_data) if loan_stats_data[c].nunique(dropna=True)>1]]
 
-for col in loan_stats_data.columns:
-    current_col = loan_stats_data[col]
-    to_del = True
-    for r in current_col:
-        if isNaN(current_col[r]):
-            continue
-        else:
-            to_del = False
-    if to_del:
-        del loan_stats_data_new[col]
+# Find numeric variables:
+numeric_data = loan_stats_data._get_numeric_data()
 
-print(loan_stats_data_new.columns)
+
+
+# Find correlations between each column to the loan_status_bool:
+r = numeric_data.corr(method="pearson")
+
+plt.barh(r.columns[:-1],r.loan_status_bool[:-1])
+plt.show()
+
+r = r.loan_status_bool[:-1]
+corr_params = r.values
+is_corr = np.where(np.abs(corr_params)>0.1)
+
+numeric_data[r.index[is_corr]].describe()
+
+fig = plt.figure(figsize=(20,10))
+plt.imshow(numeric_data[r.index[is_corr]].corr().as_matrix())
+plt.colorbar()
+plt.xticks(np.arange(0,len(is_corr[0])),list(r.index[is_corr[0]]))
+plt.show()
+
