@@ -22,6 +22,11 @@ numeric_data = loan_stats_data._get_numeric_data()
 
 
 
+# change string variables with % to numeric:
+
+
+
+
 # Find correlations between each column to the loan_status_bool:
 r = numeric_data.corr(method="pearson")
 
@@ -39,4 +44,9 @@ plt.imshow(numeric_data[r.index[is_corr]].corr().as_matrix())
 plt.colorbar()
 plt.xticks(np.arange(0,len(is_corr[0])),list(r.index[is_corr[0]]))
 plt.show()
+
+
+
+d = {'Charged Off':0, 'Fully Paid':1}
+loan_stats_data['loan_status_bool'] = pd.Series(loan_stats_data['loan_status'].map(d))
 
