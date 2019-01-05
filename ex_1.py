@@ -50,3 +50,13 @@ plt.show()
 d = {'Charged Off':0, 'Fully Paid':1}
 loan_stats_data['loan_status_bool'] = pd.Series(loan_stats_data['loan_status'].map(d))
 
+
+
+r = numeric_data.corr(method="pearson")
+r = r.loan_status_bool[:-1]
+corr_params = r.values
+is_corr = np.where(np.abs(corr_params)>0.1)
+selected_numeric_params = numeric_data[r.index[is_corr]]
+selected_data = selected_numeric_params
+loan_status = loan_stats_data['loan_status_bool']
+x_train,x_test,y_train,y_test = train_test_split(selected_data,loan_status,test_size=0.25,random_state=0)
